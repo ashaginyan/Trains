@@ -19,6 +19,14 @@ def get_dist(point1, point2):
     return round(r)
 
 class Sector():
+    r = 100
+    A = [(0, 435), (260, 1079), (620, 1079), (1163, 1079), (1508, 1079), (1836, 1079)]
+    B = [(44, 218), (203, 540), (657, 540), (1153, 540), (1471, 540), (1773, 540)]
+    C = [(87, 0), (386, 0), (693, 0), (1142, 0), (1433, 0), (1710, 0)]
+    L = [10, 20, 20, 20, 20, 20]
+    WAY = [14, 15, 16, 17, 18, 19]
+    ADD = 34
+    warping_matrix = None
     def __init__(self, sec_num):
         self.sec_num = sec_num
         if sec_num == 1:
@@ -27,6 +35,8 @@ class Sector():
             self.B = [(1062, 184), (938, 382), (967, 581), (959, 856)]
             self.C = [(1919, 162), (1919, 357), (1919, 548), (1919, 819)]
             self.L = [30, 31, 32, 33] # метры
+            self.WAY = [13, 14, 15, 16]
+            self.ADD = 34
 
         elif sec_num == 2:
             self.r = 100
@@ -34,6 +44,8 @@ class Sector():
             self.B = [(44, 218), (203, 540), (657, 540), (1153, 540), (1471, 540), (1773, 540)]
             self.C = [(87, 0), (386, 0), (693, 0), (1142, 0), (1433, 0), (1710, 0)]
             self.L = [10, 20, 20, 20, 20, 20]
+            self.WAY = [14,15,16,17,18,19]
+            self.ADD = 34
 
         elif sec_num == 3:
             self.r = 120
@@ -41,6 +53,8 @@ class Sector():
             self.B = [(921, 873), (887, 610), (856, 411), (831, 231)]
             self.A = [(1842, 897), (1773, 632), (1712, 429), (1661, 245)]
             self.L = [43, 42, 40, 39]
+            self.WAY = [24,23,22,21]
+            self.ADD = 34
 
         elif sec_num == 4:
             self.r = 80
@@ -79,6 +93,8 @@ class Sector():
             self.C = [(349, 5), (474, 0), (562, 0), (672, 0), (765, 0), (870, 0), (1013, 0), (1106, 0), (1202, 0),
                       (1301, 0), (1386, 0), (1470, 0)]
             self.L = [70, 80, 98, 114, 114, 114, 114, 114, 114, 98, 86, 76]
+            self.WAY = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+            self.ADD = 85
 
         elif sec_num == 9:
             self.r = 70
@@ -143,17 +159,25 @@ class Sector():
         K = (self.W[n] - self.M[n]) / self.M[n]
         return K
 
+#расстояние в метрах через расстояние в пикселях
     def get_D(self, x, N):
         n = N
         K = (self.W[n] - self.M[n]) / self.M[n]
         D = self.L[n] * K / ((self.W[n] / x) - 1 + K)
-        return round(D)
+        return round(D + self.ADD)
+
+    def get_D_via_point(self, point, way_num):
+        N = self.WAY.index(way_num)
+        x = get_dist(self.A[N], point)
+        return self.get_D(x,N)
+
 
     def get_x(self, D, N):
         n = N
         K = (self.W[n] - self.M[n]) / self.M[n]
         x = self.W[n] / (self.L[n] * K / (D) + 1 - K)
         return round(x)
+
 
     def check(self, point):
         way = [-1]
@@ -170,4 +194,24 @@ def main():
     sector = Sector(11)
     print(sector.check((1107, 1020)), sector.get_D(300, 3))
 
-main()
+
+if __name__ == "__main__":
+    num_of_sector = 8
+    num_of_way = 18
+    point = (776,618)
+    # point = (869, 1)
+    sector = Sector(num_of_sector)
+    dist = sector.get_D_via_point(point,num_of_way)
+
+    path = "/home/andrey/work/Projects/VideoKZP/svn/kzsg/imgs/free_ways/day/"
+    ###
+
+    path_to_file = path + "day_" + str(num_of_sector) + ".jpg"
+    img = cv2.imread(path_to_file)
+    cv2.circle(img, point, 2, (0,0,255), 26)
+    cv2.putText(img, str(dist), point, cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 10)
+    cv2.namedWindow("dist",cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("dist",300,300)
+    cv2.imshow("dist",img)
+    cv2.waitKey()
+
